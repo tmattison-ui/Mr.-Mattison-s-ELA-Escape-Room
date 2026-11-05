@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mr. Mattison's ELA Escape Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap');
+        
+        body {
+            font-family: 'Share Tech Mono', monospace;
+            background-color: #0f172a; /* Tailwind slate-900 */
+            color: #4ade80; /* Tailwind green-400 */
+        }
+        
+        .crt::before {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 255, 0, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .glitch {
+            animation: glitch 1s linear infinite;
+        }
+
+        @keyframes glitch{
+            2%,64%{transform: translate(2px,0) skew(0deg);}
+            4%,60%{transform: translate(-2px,0) skew(0deg);}
+            62%{transform: translate(0,0) skew(5deg);}
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Custom scrollbar for terminals */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #4ade80; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #22c55e; }
+    </style>
+</head>
+<body class="crt min-h-screen flex items-center justify-center p-2 sm:p-4">
+
+    <!-- Main Game Container -->
+    <div id="game-container" class="max-w-4xl w-full bg-slate-900 border-2 border-green-500 rounded-lg shadow-[0_0_25px_rgba(74,222,128,0.35)] overflow-hidden flex flex-col relative z-10" style="min-height: 85vh;">
+        
+        <!-- Header -->
+        <header class="border-b-2 border-green-500 p-3 sm:p-4 bg-slate-800 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 animate-pulse text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                <h1 class="text-lg sm:text-2xl font-bold uppercase tracking-widest text-green-400">System_Lock: Active</h1>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button id="sound-btn" onclick="toggleAudio()" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 text-xs text-green-300 rounded border border-green-600 flex items-center gap-1">
+                    <span id="sound-icon">🔊</span> <span id="sound-status">SFX ON</span>
+                </button>
+                <div id="grade-display" class="hidden text-xs sm:text-sm px-3 py-1 bg-green-900 text-green-100 rounded border border-green-500">
+                    Class: <span id="current-grade-text"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Content Area -->
+        <main id="content-area" class="flex-grow p-4 sm:p-8 overflow-y-auto flex flex-col justify-center">
+            
+            <!-- Main Menu Screen -->
+            <div id="screen-menu" class="fade-in space-y-6 flex flex-col items-center justify-center h-full text-center my-auto">
+                <h2 class="text-3xl sm:text-5xl font-bold mb-2 glitch tracking-tight">Escape Room Mr. Mattison</h2>
+                <p class="text-base sm:text-xl text-green-300 max-w-2xl leading-relaxed">
+                    Welcome initiates. The master file "Escape Room Mr. Mattison" has locked down the Georgia Insights ELA mainframe. Select your grade level, analyze critical literature & standards, and override security locks!
+                </p>
+                <div class="p-3 bg-slate-800 border border-green-700 rounded-lg max-w-md text-xs sm:text-sm text-green-400">
+                    ⚡ Features interactive ELA standard challenges + arcade defense overrides!
+                </div>
+                <p class="text-sm text-green-500 font-semibold uppercase tracking-wider">Select Authorization Sector:</p>
+                
+                <div class="flex flex-col sm:flex-row gap-4 w-full max-w-lg justify-center">
+                    <button onclick="startGame(9)" class="w-full sm:w-1/3 py-4 bg-slate-800 border-2 border-green-500 text-green-400 hover:bg-green-500 hover:text-slate-900 font-bold text-xl transition-all duration-200 rounded-lg uppercase shadow-lg focus:outline-none">
+                        9th Grade
+                    </button>
+                    <button onclick="startGame(11)" class="w-full sm:w-1/3 py-4 bg-slate-800 border-2 border-green-500 text-green-400 hover:bg-green-500 hover:text-slate-900 font-bold text-xl transition-all duration-200 rounded-lg uppercase shadow-lg focus:outline-none">
+                        11th Grade
+                    </button>
+                    <button onclick="startGame(12)" class="w-full sm:w-1/3 py-4 bg-slate-800 border-2 border-green-500 text-green-400 hover:bg-green-500 hover:text-slate-900 font-bold text-xl transition-all duration-200 rounded-lg uppercase shadow-lg focus:outline-none">
+                        12th Grade
+                    </button>
+                </div>
+            </div>
+
+            <!-- Puzzle Screen -->
+            <div id="screen-puzzle" class="hidden fade-in space-y-6 my-auto">
+                <div class="flex justify-between items-center border-b border-green-800 pb-2">
+                    <h3 id="puzzle-standard" class="text-xs sm:text-sm text-green-400 font-bold tracking-wide">Standard: ...</h3>
+                    <h3 id="puzzle-progress" class="text-xs sm:text-sm text-green-400 font-bold">Lock 1 of 5</h3>
+                </div>
+                
+                <div class="bg-slate-800 p-4 sm:p-6 rounded-lg border border-green-800 shadow-inner space-y-4">
+                    <p id="puzzle-narrative" class="text-green-300 italic text-xs sm:text-sm border-l-4 border-green-500 pl-3 py-1 bg-slate-900/60 rounded-r"></p>
+                    <p id="puzzle-question" class="text-base sm:text-xl font-semibold text-white leading-snug"></p>
+                    
+                    <div id="options-container" class="space-y-3 pt-2">
+                        <!-- Options injected by JS -->
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <button id="hint-btn" onclick="toggleHint()" class="text-xs text-yellow-400 hover:text-yellow-300 border border-yellow-500/50 hover:border-yellow-400 px-3 py-1.5 rounded bg-yellow-950/30 transition-all flex items-center gap-1">
+                        💡 <span>Scout Hint</span>
+                    </button>
+                    <span id="hint-box" class="hidden text-xs text-yellow-200 italic bg-slate-800 p-2 rounded border border-yellow-600 max-w-md"></span>
+                </div>
+
+                <div id="feedback-msg" class="hidden p-4 rounded text-center font-bold text-base sm:text-lg transition-all duration-300">
+                    <!-- Feedback injected here -->
+                </div>
+            </div>
+
+            <!-- Mini Game Screen (Arcade Reward) -->
+            <div id="screen-minigame" class="hidden fade-in space-y-3 text-center my-auto">
+                <div class="flex justify-between items-center border-b border-green-800 pb-2">
+                    <h3 class="text-xs sm:text-sm text-green-400 font-bold uppercase tracking-wider">Override Defense Active</h3>
+                    <div class="flex gap-4 text-xs sm:text-sm font-bold">
+                        <span id="player-hp-display" class="text-red-400">SHIELD: 100%</span>
+                        <span id="minigame-timer" class="text-yellow-400">TIME: <span id="timer-sec">20</span>s</span>
+                    </div>
+                </div>
+                <p class="text-xs text-green-300">
+                    Destroy firewalls, dodge viruses (<span class="text-red-400">red</span>), and grab power-ups (<span class="text-blue-400">shield/weapon</span>)!
+                </p>
+
+                <!-- Mini Game Canvas -->
+                <div class="relative w-full flex justify-center items-center">
+                    <canvas id="arcadeCanvas" width="600" height="300" class="border-2 border-green-500 bg-black rounded max-w-full h-auto shadow-[0_0_15px_rgba(74,222,128,0.2)]"></canvas>
+                </div>
+
+                <!-- Touch Controls for Mobile -->
+                <div class="flex justify-center gap-3 pt-1">
+                    <button id="btn-left" class="px-5 py-3 bg-slate-800 border border-green-500 text-green-400 active:bg-green-500 active:text-slate-900 rounded-lg text-base font-bold select-none">◄</button>
+                    <button id="btn-fire" class="px-8 py-3 bg-green-600 border border-green-400 text-slate-900 active:bg-green-400 rounded-lg text-base font-bold select-none">FIRE 🚀</button>
+                    <button id="btn-right" class="px-5 py-3 bg-slate-800 border border-green-500 text-green-400 active:bg-green-500 active:text-slate-900 rounded-lg text-base font-bold select-none">►</button>
+                </div>
+
+                <div>
+                    <button onclick="skipMiniGame()" class="text-xs text-green-600 hover:text-green-400 underline">
+                        [ Skip Arcade & Move to Next Lock ]
+                    </button>
+                </div>
+            </div>
+
+            <!-- Victory Screen -->
+            <div id="screen-victory" class="hidden fade-in flex flex-col items-center justify-center h-full text-center space-y-6 my-auto">
+                <div class="text-6xl animate-bounce">🔓</div>
+                <h2 class="text-3xl sm:text-5xl font-bold text-green-300 tracking-tight">SYSTEM OVERRIDE COMPLETE</h2>
+                <p class="text-lg sm:text-xl text-green-400 max-w-2xl leading-relaxed">
+                    Congratulations! You have successfully solved all ELA standard challenges for your grade level and bypassed the "Escape Room Mr. Mattison" lockdown protocols!
+                </p>
+                <div id="mastery-summary" class="bg-slate-800 border border-green-600 p-4 rounded-lg text-left text-xs sm:text-sm text-green-300 max-w-lg w-full space-y-2">
+                    <p class="font-bold text-yellow-400 text-center text-base">📊 Standard Mastery Verified</p>
+                    <ul id="mastery-list" class="list-disc list-inside space-y-1"></ul>
+                </div>
+                <div>
+                    <button onclick="returnToMenu()" class="px-8 py-3 bg-slate-800 border-2 border-green-500 text-green-400 hover:bg-green-500 hover:text-slate-900 font-bold text-lg transition-all duration-200 rounded-lg uppercase focus:outline-none">
+                        Return to Main Menu
+                    </button>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <script>
+        // Sound Engine powered by Tone.js
+        let soundEnabled = true;
+        let synth, polySynth, noiseSynth;
+
+        function initAudio() {
+            if (!synth) {
+                synth = new Tone.Synth().toDestination();
+                polySynth = new Tone.PolySynth().toDestination();
+                noiseSynth = new Tone.NoiseSynth({ envelope: { attack: 0.001, decay: 0.2, sustain: 0 } }).toDestination();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                Tone.start();
+                if (type === 'click') synth.triggerAttackRelease('C5', '8n');
+                if (type === 'laser') synth.triggerAttackRelease('G5', '16n');
+                if (type === 'hit') noiseSynth.triggerAttackRelease('16n');
+                if (type === 'correct') polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'C5'], '8n');
+                if (type === 'wrong') polySynth.triggerAttackRelease(['F3', 'C3'], '4n');
+                if (type === 'victory') polySynth.triggerAttackRelease(['C4', 'E4', 'G4', 'B4', 'C5'], '2n');
+                if (type === 'powerup') synth.triggerAttackRelease('E6', '8n');
+            } catch (e) {
+                // Fail-soft for browser autoplay restrictions
+            }
+        }
+
+        function toggleAudio() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-status').textContent = soundEnabled ? "SFX ON" : "SFX OFF";
+            document.getElementById('sound-icon').textContent = soundEnabled ? "🔊" : "🔇";
+        }
+
+        // Database of Puzzles aligned to Georgia ELA Standards (GSE)
+        const gameData = {
+            9: {
+                title: "9th Grade: Edgar Allan Poe",
+                puzzles: [
+                    {
+                        standard: "ELAGSE9-10RL3 (Complex Characters)",
+                        narrative: "Mr. Mattison's 9th-grade module locks you in the dark catacombs of Montresor from 'The Cask of Amontillado'.",
+                        question: "How does Montresor's deceptive friendliness towards Fortunato drive the plot?",
+                        hint: "Consider how Fortunato's lack of suspicion allows Montresor to trap him.",
+                        options: [
+                            "It forces Fortunato to apologize for his past insults.",
+                            "It makes the plot predictable and resolves the conflict early.",
+                            "It alerts Fortunato to the danger, causing a thrilling chase sequence.",
+                            "It creates dramatic irony and allows Montresor to enact his revenge without immediate resistance."
+                        ],
+                        correctIndex: 3
+                    },
+                    {
+                        standard: "ELAGSE9-10RL4 (Connotative Meaning)",
+                        narrative: "A raven taps fiercely at your terminal screen. You must decipher the code hidden in its repetition.",
+                        question: "In Poe's 'The Raven,' what is the primary connotative effect of repeating the word 'Nevermore'?",
+                        hint: "Think about the emotional trajectory of the narrator as the bird keeps replying.",
+                        options: [
+                            "It establishes a tone of finality and eternal despair for the narrator.",
+                            "It reveals the bird's actual name to the reader.",
+                            "It creates a joyful rhythm to contrast the dark setting.",
+                            "It proves that the narrator is simply dreaming."
+                        ],
+                        correctIndex: 0
+                    },
+                    {
+                        standard: "ELAGSE9-10RL5 (Author's Choices & Structure)",
+                        narrative: "The floorboards of the escape room begin to thump like a beating heart. The 9th-grade firewall is active.",
+                        question: "How does the author's choice of using a frantic, unreliable first-person narrator in 'The Tell-Tale Heart' create tension?",
+                        hint: "Focus on how viewing events through a panicked, unstable lens affects the reader's fear.",
+                        options: [
+                            "It allows the reader to see the events from the perspective of the police.",
+                            "It builds psychological suspense by trapping the reader in the narrator's deteriorating state of mind.",
+                            "It slows down the pacing of the story so the reader can analyze the setting.",
+                            "It guarantees the reader knows exactly how the story will end from the first sentence."
+                        ],
+                        correctIndex: 1
+                    },
+                    {
+                        standard: "ELAGSE9-10RL1 (Textual Evidence)",
+                        narrative: "A flickering candle casts ominous shadows across the terminal screen as you search Poe's archives for proof.",
+                        question: "In 'The Tell-Tale Heart,' which piece of textual evidence best supports the claim that the narrator is haunted by guilt?",
+                        hint: "Look for an internal physiological symptom that makes the character confess.",
+                        options: [
+                            "He greets the policemen warmly and invites them into the room.",
+                            "He hears a ringing in his ears that grows louder until he admits to the crime.",
+                            "He carefully plans the murder for seven whole nights.",
+                            "He shines a single ray of light upon the old man's pale eye."
+                        ],
+                        correctIndex: 1
+                    },
+                    {
+                        standard: "ELAGSE9-10RL2 (Theme & Central Idea)",
+                        narrative: "The air in the room turns icy cold. A locked chest requires you to determine the core theme of Poe's gothic work.",
+                        question: "Which of the following best states a central theme in Poe's 'The Pit and the Pendulum'?",
+                        hint: "Think about what keeps the protagonist fighting despite overwhelming torture.",
+                        options: [
+                            "Physical pain is far worse than mental anguish.",
+                            "Human resilience and the instinct to survive persist even in terrifying horror.",
+                            "Betrayal by close friends is the ultimate form of cruelty.",
+                            "Science and reason can easily explain away all human fears."
+                        ],
+                        correctIndex: 1
+                    }
+                ]
+            },
+            11: {
+                title: "11th Grade: Edgar Allan Poe & American Lit",
+                puzzles: [
+                    {
+                        standard: "ELAGSE11-12RL4 (Impact of Word Choice)",
+                        narrative: "Mr. Mattison's 11th-grade American Lit firewall resembles a crumbling gothic mansion. Analyze Poe's diction.",
+                        question: "In 'The Fall of the House of Usher,' Poe uses words like 'decay,' 'bleak,' and 'vacant.' How do these word choices impact the narrative?",
+                        hint: "Diction creates atmosphere. How does desolate vocabulary mirror the family's state?",
+                        options: [
+                            "They make the setting seem temporary and easily fixable.",
+                            "They provide a sharp contrast to the cheerful attitude of Roderick Usher.",
+                            "They establish an oppressive mood of inescapable doom that mirrors the Usher family's decline.",
+                            "They serve to confuse the reader about the actual physical location of the house."
+                        ],
+                        correctIndex: 2
+                    },
+                    {
+                        standard: "ELAGSE11-12RL9 (Foundational American Lit)",
+                        narrative: "To bypass the next security node, connect Poe's works to 19th-century American Literature movements.",
+                        question: "How does Edgar Allan Poe's body of work primarily exemplify the characteristics of American Dark Romanticism?",
+                        hint: "Dark Romantics focused on the dark underbelly of human nature rather than optimistic nature worship.",
+                        options: [
+                            "By focusing on the beauty of nature and transcendental enlightenment.",
+                            "By exploring the irrationality of the human mind, the consequences of sin, and the psychology of guilt.",
+                            "By strictly adhering to the logical and rational ideals of the Enlightenment era.",
+                            "By documenting the realistic, everyday lives of average American citizens."
+                        ],
+                        correctIndex: 1
+                    },
+                    {
+                        standard: "ELAGSE11-12RL5 (Structure and Thematic Purpose)",
+                        narrative: "A spectral clock chimes midnight. The lock requires you to analyze structural allegory.",
+                        question: "How does Poe's structural choice of the seven differently colored rooms in 'The Masque of the Red Death' serve his thematic purpose?",
+                        hint: "Consider how room colors moving East to West represent a human timeline.",
+                        options: [
+                            "It creates a chronological allegory for the stages of life, culminating in inevitable death.",
+                            "It shows that Prince Prospero had excellent taste in interior design.",
+                            "It divides the story into seven distinct chapters, each with a different narrator.",
+                            "It represents the seven deadly sins, with the Red Death acting as salvation."
+                        ],
+                        correctIndex: 0
+                    },
+                    {
+                        standard: "ELAGSE11-12RL2 (Determining Dual Themes)",
+                        narrative: "The walls reverberate with the echo of a beating heart hidden beneath wooden planks.",
+                        question: "In American Gothic literature like Poe's, how do the dual themes of psychological insanity and moral guilt interact?",
+                        hint: "Does unaddressed guilt lead to mental stability or total psychological breakdown?",
+                        options: [
+                            "Insanity acts as a shield that completely protects characters from feeling guilt.",
+                            "Guilt acts as a catalyst that accelerates the character's descent into psychological breakdown.",
+                            "Guilt is portrayed as a positive force that restores sanity by the end of the story.",
+                            "Both themes are used solely for comedic relief to lighten the gothic tone."
+                        ],
+                        correctIndex: 1
+                    },
+                    {
+                        standard: "ELAGSE11-12RL6 (Point of View & Irony)",
+                        narrative: "An old leather-bound ledger glows on the desk, displaying a distorted first-person narrative.",
+                        question: "In Poe's stories, how does the use of an unreliable narrator enhance dramatic irony for the reader?",
+                        hint: "Dramatic irony occurs when the audience knows something important that the protagonist denies.",
+                        options: [
+                            "The reader understands the narrator's madness and delusions before the narrator himself realizes them.",
+                            "The narrator explains the entire moral of the story directly to the reader in the opening line.",
+                            "The reader is kept completely in the dark until a third-person narrator steps in at the end.",
+                            "The narrator always tells the exact truth, making every plot twist unexpected."
+                        ],
+                        correctIndex: 0
+                    }
+                ]
+            },
+            12: {
+                title: "12th Grade: Mulan & Asian Culture",
+                puzzles: [
+                    {
+                        standard: "ELAGSE11-12RL6 (Cultural Perspectives & Point of View)",
+                        narrative: "The 12th-grade terminal transports you to ancient China. Analyze 'The Ballad of Mulan' and its cultural context.",
+                        question: "How does the original 'Ballad of Mulan' challenge the traditional societal expectations of its time?",
+                        hint: "Think about how Mulan takes on her father's draft duty while maintaining filial piety.",
+                        options: [
+                            "By suggesting that military service is entirely unnecessary for society.",
+                            "By arguing that emperors should not be allowed to draft citizens into wars.",
+                            "By demonstrating that filial piety and family honor can be achieved by a woman subverting gender roles.",
+                            "By proving that women are physically stronger than men in every regard."
+                        ],
+                        correctIndex: 2
+                    },
+                    {
+                        standard: "ELAGSE11-12RL3 (Impact of Author's Choices)",
+                        narrative: "Mulan has returned home and shed her armor. Analyze the narrative impact of the ballad's conclusion.",
+                        question: "At the end of the ballad, Mulan resumes her traditional female clothing, shocking her fellow soldiers. What is the narrative impact of this choice?",
+                        hint: "How does showing her comrades her true identity reframe her military accomplishment?",
+                        options: [
+                            "It ruins her reputation as a skilled warrior in the eyes of the emperor.",
+                            "It emphasizes the theme that true capability and character are not bound by outward appearances or gender.",
+                            "It proves that she was only pretending to be brave because she was disguised.",
+                            "It suggests that she regrets her time in the military and wishes to forget it."
+                        ],
+                        correctIndex: 1
+                    },
+                    {
+                        standard: "ELAGSE11-12RL7 (Analyzing Multiple Interpretations)",
+                        narrative: "The master lock guarding the core demands comparing ancient texts to modern adaptations.",
+                        question: "When evaluating modern Western cinematic adaptations of Mulan against the original Chinese ballad, what thematic shift is most commonly observed?",
+                        hint: "Consider the contrast between collective Eastern familial duty and Western individualism.",
+                        options: [
+                            "A shift from focusing on large-scale battles to focusing purely on romance.",
+                            "A shift from prioritizing female empowerment to prioritizing historical accuracy.",
+                            "A shift from honoring ancestors to rebelling against the emperor.",
+                            "A shift from the primary focus on familial duty (filial piety) to a primary focus on individual self-discovery."
+                        ],
+                        correctIndex: 3
+                    },
+                    {
+                        standard: "ELAGSE11-12RL1 (Implicit Meaning in Ancient Texts)",
+                        narrative: "An ancient silk scroll unrolls across the digital terminal, revealing lines from Northern Dynasties poetry.",
+                        question: "In 'The Ballad of Mulan,' what is implicitly conveyed by Mulan's refusal of the Emperor's offer of high office and wealth?",
+                        hint: "Why did she join the war in the first place, and what does she want once peace is restored?",
+                        options: [
+                            "She is insulted by the low monetary value of the reward.",
+                            "Her primary motivation was devotion to family and peace, not personal glory or political ambition.",
+                            "She secretly plans to start her own rival army in the countryside.",
+                            "She lacks the intelligence needed to serve in government office."
+                        ],
+                        correctIndex: 1
+                    },
+                    {
+                        standard: "ELAGSE11-12RL4 (Symbolism & Cultural Diction)",
+                        narrative: "The final door in the 12th-grade sector requires decoding metaphoric language from traditional Asian literature.",
+                        question: "At the end of 'The Ballad of Mulan,' the metaphor of the male and female rabbits running side-by-side symbolizes:",
+                        hint: "When two rabbits run together in a field, can you easily distinguish male from female?",
+                        options: [
+                            "The chaotic nature of warfare and battlefield confusion.",
+                            "The impossibility of men and women ever understanding each other.",
+                            "The equality and indistinguishability of skills when gender disguises are removed.",
+                            "The swift passage of time during twelve years of military service."
+                        ],
+                        correctIndex: 2
+                    }
+                ]
+            }
+        };
+
+        // Game State Variables
+        let currentGrade = null;
+        let currentPuzzleIndex = 0;
+        let isTransitioning = false;
+
+        // DOM Elements
+        const elMenu = document.getElementById('screen-menu');
+        const elPuzzle = document.getElementById('screen-puzzle');
+        const elVictory = document.getElementById('screen-victory');
+        const elMiniGame = document.getElementById('screen-minigame');
+        const elGradeDisplay = document.getElementById('grade-display');
+        const elCurrentGradeText = document.getElementById('current-grade-text');
+        
+        const elPuzStandard = document.getElementById('puzzle-standard');
+        const elPuzProgress = document.getElementById('puzzle-progress');
+        const elPuzNarrative = document.getElementById('puzzle-narrative');
+        const elPuzQuestion = document.getElementById('puzzle-question');
+        const elOptionsContainer = document.getElementById('options-container');
+        const elFeedback = document.getElementById('feedback-msg');
+        const elHintBtn = document.getElementById('hint-btn');
+        const elHintBox = document.getElementById('hint-box');
+
+        // --- Arcade Mini-Game Core ---
+        const canvas = document.getElementById('arcadeCanvas');
+        const ctx = canvas.getContext('2d');
+        let miniGameAnimationId = null;
+        let miniGameTimerInterval = null;
+        let miniGameTimeLeft = 20;
+        
+        let player = { x: canvas.width / 2 - 15, y: canvas.height - 25, w: 30, h: 15, speed: 6, hp: 100, hitTimer: 0, tripleShot: 0 };
+        let bullets = [];
+        let enemyBullets = [];
+        let enemies = [];
+        let particles = [];
+        let powerups = [];
+        let score = 0;
+        let keys = { left: false, right: false, space: false, fired: false };
+
+        // Keyboard Event Listeners
+        window.addEventListener('keydown', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+            if (e.code === 'Space') {
+                if (!keys.fired) {
+                    fireBullet();
+                    keys.fired = true;
+                }
+                keys.space = true;
+            }
+        });
+
+        window.addEventListener('keyup', (e) => {
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+            if (e.code === 'Space') {
+                keys.space = false;
+                keys.fired = false;
+            }
+        });
+
+        function fireBullet() {
+            playSound('laser');
+            if (player.tripleShot > 0) {
+                bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10, speed: 7, dx: -2 });
+                bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10, speed: 7, dx: 0 });
+                bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10, speed: 7, dx: 2 });
+            } else {
+                bullets.push({ x: player.x + player.w / 2 - 2, y: player.y, w: 4, h: 10, speed: 7, dx: 0 });
+            }
+        }
+
+        // Touch Control Wiring
+        const bindTouch = (elem, pressAction, releaseAction) => {
+            elem.addEventListener('touchstart', (e) => { e.preventDefault(); pressAction(); });
+            elem.addEventListener('touchend', (e) => { e.preventDefault(); releaseAction(); });
+            elem.addEventListener('mousedown', pressAction);
+            elem.addEventListener('mouseup', releaseAction);
+        };
+
+        bindTouch(document.getElementById('btn-left'), () => { keys.left = true; }, () => { keys.left = false; });
+        bindTouch(document.getElementById('btn-right'), () => { keys.right = true; }, () => { keys.right = false; });
+        bindTouch(document.getElementById('btn-fire'), () => { fireBullet(); }, () => {});
+
+        function initMiniGame() {
+            bullets = [];
+            enemyBullets = [];
+            enemies = [];
+            particles = [];
+            powerups = [];
+            score = 0;
+            miniGameTimeLeft = 20;
+            player.x = canvas.width / 2 - 15;
+            player.hp = 100;
+            player.hitTimer = 0;
+            player.tripleShot = 0;
+            
+            document.getElementById('timer-sec').textContent = miniGameTimeLeft;
+            updateHpDisplay();
+
+            // Spawn standard enemy locks or Boss Lock on every 3rd question
+            const isBossLevel = (currentPuzzleIndex % 3 === 2);
+
+            if (isBossLevel) {
+                // Spawn a Boss Firewall
+                enemies.push({
+                    x: canvas.width / 2 - 60,
+                    y: 30,
+                    w: 120,
+                    h: 40,
+                    hp: 15,
+                    maxHp: 15,
+                    isBoss: true,
+                    dir: 1,
+                    alive: true
+                });
+            } else {
+                // Spawn grid of firewalls
+                for (let r = 0; r < 3; r++) {
+                    for (let c = 0; c < 7; c++) {
+                        enemies.push({
+                            x: 55 + c * 70,
+                            y: 30 + r * 35,
+                            w: 45,
+                            h: 20,
+                            hp: 1,
+                            isBoss: false,
+                            alive: true
+                        });
+                    }
+                }
+            }
+
+            // Start countdown timer
+            clearInterval(miniGameTimerInterval);
+            miniGameTimerInterval = setInterval(() => {
+                miniGameTimeLeft--;
+                document.getElementById('timer-sec').textContent = miniGameTimeLeft;
+                if (player.tripleShot > 0) player.tripleShot--;
+                if (miniGameTimeLeft <= 0) {
+                    endMiniGame();
+                }
+            }, 1000);
+
+            cancelAnimationFrame(miniGameAnimationId);
+            runMiniGame();
+        }
+
+        function spawnParticles(x, y, color, count = 8) {
+            for (let i = 0; i < count; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 6,
+                    vy: (Math.random() - 0.5) * 6,
+                    life: 20,
+                    color: color
+                });
+            }
+        }
+
+        function updateHpDisplay() {
+            document.getElementById('player-hp-display').textContent = `SHIELD: ${player.hp}%`;
+        }
+
+        function runMiniGame() {
+            // Update player movement
+            if (keys.left && player.x > 0) player.x -= player.speed;
+            if (keys.right && player.x < canvas.width - player.w) player.x += player.speed;
+
+            if (player.hitTimer > 0) player.hitTimer--;
+
+            // Move Boss if active
+            enemies.forEach(e => {
+                if (e.alive && e.isBoss) {
+                    e.x += e.dir * 2;
+                    if (e.x < 20 || e.x + e.w > canvas.width - 20) e.dir *= -1;
+                }
+            });
+
+            // Random enemy shooting
+            if (Math.random() < 0.05) {
+                const activeEnemies = enemies.filter(e => e.alive);
+                if (activeEnemies.length > 0) {
+                    const shooter = activeEnemies[Math.floor(Math.random() * activeEnemies.length)];
+                    enemyBullets.push({ 
+                        x: shooter.x + shooter.w / 2 - 2, 
+                        y: shooter.y + shooter.h, 
+                        w: shooter.isBoss ? 8 : 5, 
+                        h: shooter.isBoss ? 14 : 10, 
+                        speed: shooter.isBoss ? 5 : 4 
+                    });
+                }
+            }
+
+            // Update Player Bullets
+            bullets.forEach((b, index) => {
+                b.y -= b.speed;
+                b.x += (b.dx || 0);
+                if (b.y < 0 || b.x < 0 || b.x > canvas.width) bullets.splice(index, 1);
+            });
+
+            // Update Enemy Bullets
+            enemyBullets.forEach((eb, index) => {
+                eb.y += eb.speed;
+
+                // Check collision with Player
+                if (eb.x < player.x + player.w && eb.x + eb.w > player.x && eb.y < player.y + player.h && eb.y + eb.h > player.y) {
+                    enemyBullets.splice(index, 1);
+                    player.hp = Math.max(0, player.hp - 20);
+                    updateHpDisplay();
+                    player.hitTimer = 15;
+                    playSound('hit');
+                    spawnParticles(player.x + player.w/2, player.y, '#ef4444', 10);
+                    if (player.hp <= 0) endMiniGame();
+                } else if (eb.y > canvas.height) {
+                    enemyBullets.splice(index, 1);
+                }
+            });
+
+            // Update Powerups
+            powerups.forEach((pu, index) => {
+                pu.y += 2;
+                if (pu.x < player.x + player.w && pu.x + pu.w > player.x && pu.y < player.y + player.h && pu.y + pu.h > player.y) {
+                    playSound('powerup');
+                    if (pu.type === 'hp') {
+                        player.hp = Math.min(100, player.hp + 30);
+                        updateHpDisplay();
+                    } else if (pu.type === 'weapon') {
+                        player.tripleShot = 8;
+                    }
+                    powerups.splice(index, 1);
+                } else if (pu.y > canvas.height) {
+                    powerups.splice(index, 1);
+                }
+            });
+
+            // Collision Detection player bullets -> enemies
+            bullets.forEach((b, bIdx) => {
+                enemies.forEach((e) => {
+                    if (e.alive && b.x < e.x + e.w && b.x + b.w > e.x && b.y < e.y + e.h && b.y + b.h > e.y) {
+                        e.hp--;
+                        bullets.splice(bIdx, 1);
+                        playSound('hit');
+                        spawnParticles(b.x, b.y, '#facc15', 5);
+
+                        if (e.hp <= 0) {
+                            e.alive = false;
+                            score += e.isBoss ? 500 : 100;
+                            spawnParticles(e.x + e.w/2, e.y + e.h/2, '#ef4444', 15);
+
+                            // Chance to drop powerup
+                            if (Math.random() < 0.35) {
+                                powerups.push({
+                                    x: e.x + e.w/2,
+                                    y: e.y,
+                                    w: 16,
+                                    h: 16,
+                                    type: Math.random() < 0.5 ? 'hp' : 'weapon'
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+
+            // Update particles
+            particles.forEach((p, idx) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life--;
+                if (p.life <= 0) particles.splice(idx, 1);
+            });
+
+            // Check if all enemies cleared
+            if (enemies.length > 0 && enemies.every(e => !e.alive)) {
+                endMiniGame();
+                return;
+            }
+
+            // Render Screen
+            ctx.fillStyle = '#0f172a';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Player Ship
+            ctx.fillStyle = player.hitTimer > 0 ? '#ef4444' : '#4ade80';
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+            ctx.fillRect(player.x + 10, player.y - 6, 10, 6);
+
+            // Draw Bullets
+            ctx.fillStyle = '#facc15';
+            bullets.forEach(b => ctx.fillRect(b.x, b.y, b.w, b.h));
+
+            // Draw Enemy Bullets
+            ctx.fillStyle = '#ef4444';
+            enemyBullets.forEach(eb => ctx.fillRect(eb.x, eb.y, eb.w, eb.h));
+
+            // Draw Powerups
+            powerups.forEach(pu => {
+                ctx.fillStyle = pu.type === 'hp' ? '#3b82f6' : '#a855f7';
+                ctx.fillRect(pu.x, pu.y, pu.w, pu.h);
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '10px monospace';
+                ctx.fillText(pu.type === 'hp' ? '+' : 'W', pu.x + 4, pu.y + 12);
+            });
+
+            // Draw Enemies
+            enemies.forEach(e => {
+                if (e.alive) {
+                    ctx.fillStyle = e.isBoss ? '#dc2626' : '#ef4444';
+                    ctx.fillRect(e.x, e.y, e.w, e.h);
+                    
+                    if (e.isBoss) {
+                        // Boss health bar
+                        ctx.fillStyle = '#000000';
+                        ctx.fillRect(e.x, e.y - 8, e.w, 5);
+                        ctx.fillStyle = '#22c55e';
+                        ctx.fillRect(e.x, e.y - 8, e.w * (e.hp / e.maxHp), 5);
+                    }
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = e.isBoss ? '12px monospace' : '10px monospace';
+                    ctx.fillText(e.isBoss ? "BOSS LOCK" : "LOCK", e.x + (e.isBoss ? 28 : 7), e.y + (e.isBoss ? 24 : 14));
+                }
+            });
+
+            // Draw Particles
+            particles.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 3, 3);
+            });
+
+            // Draw Score
+            ctx.fillStyle = '#4ade80';
+            ctx.font = '12px monospace';
+            ctx.fillText(`OVERRIDE SCORE: ${score}`, 10, 20);
+
+            miniGameAnimationId = requestAnimationFrame(runMiniGame);
+        }
+
+        function endMiniGame() {
+            cancelAnimationFrame(miniGameAnimationId);
+            clearInterval(miniGameTimerInterval);
+            hideScreen(elMiniGame);
+
+            currentPuzzleIndex++;
+            if (currentPuzzleIndex < gameData[currentGrade].puzzles.length) {
+                loadPuzzle();
+                showScreen(elPuzzle);
+                isTransitioning = false;
+            } else {
+                triggerVictory();
+            }
+        }
+
+        function skipMiniGame() {
+            playSound('click');
+            endMiniGame();
+        }
+
+        function toggleHint() {
+            playSound('click');
+            const puzzle = gameData[currentGrade].puzzles[currentPuzzleIndex];
+            elHintBox.textContent = puzzle.hint || "Analyze key details from the question prompt.";
+            elHintBox.classList.toggle('hidden');
+        }
+
+        // Standard Functions
+        function startGame(grade) {
+            playSound('click');
+            currentGrade = grade;
+            currentPuzzleIndex = 0;
+            
+            elCurrentGradeText.textContent = `${grade}th Grade`;
+            elGradeDisplay.classList.remove('hidden');
+            
+            hideScreen(elMenu);
+            loadPuzzle();
+            showScreen(elPuzzle);
+        }
+
+        function loadPuzzle() {
+            const gradeData = gameData[currentGrade];
+            const puzzle = gradeData.puzzles[currentPuzzleIndex];
+            
+            elPuzStandard.textContent = `Standard: ${puzzle.standard}`;
+            elPuzProgress.textContent = `Lock ${currentPuzzleIndex + 1} of ${gradeData.puzzles.length}`;
+            elPuzNarrative.textContent = puzzle.narrative;
+            elPuzQuestion.textContent = puzzle.question;
+            
+            elOptionsContainer.innerHTML = '';
+            elFeedback.classList.add('hidden');
+            elFeedback.className = 'hidden p-4 rounded text-center font-bold text-base sm:text-lg mt-4 transition-all duration-300';
+            elHintBox.classList.add('hidden');
+            
+            puzzle.options.forEach((optText, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'w-full text-left p-3.5 sm:p-4 border border-green-800 bg-slate-800/90 hover:bg-green-900/60 hover:border-green-500 rounded-lg transition-all duration-200 focus:outline-none text-sm sm:text-base text-green-200';
+                btn.innerHTML = `<span class="text-green-400 font-bold mr-2">[${String.fromCharCode(65 + index)}]</span> ${optText}`;
+                btn.onclick = () => handleAnswer(index, btn);
+                elOptionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex, btnElement) {
+            if (isTransitioning) return;
+            isTransitioning = true;
+            
+            const puzzle = gameData[currentGrade].puzzles[currentPuzzleIndex];
+            const isCorrect = (selectedIndex === puzzle.correctIndex);
+            
+            const buttons = elOptionsContainer.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.disabled = true;
+                b.classList.remove('hover:bg-green-900/60', 'hover:border-green-500');
+                b.classList.add('opacity-50', 'cursor-not-allowed');
+            });
+            
+            elFeedback.classList.remove('hidden');
+            
+            if (isCorrect) {
+                playSound('correct');
+                btnElement.classList.remove('border-green-800', 'bg-slate-800/90', 'opacity-50');
+                btnElement.classList.add('border-green-400', 'bg-green-900', 'opacity-100');
+                
+                elFeedback.textContent = "ACCESS GRANTED. Firewalls bypassed! Launching Arcade Defense...";
+                elFeedback.classList.add('bg-green-950', 'text-green-300', 'border', 'border-green-500');
+                
+                setTimeout(() => {
+                    hideScreen(elPuzzle);
+                    showScreen(elMiniGame);
+                    initMiniGame();
+                }, 1600);
+            } else {
+                playSound('wrong');
+                btnElement.classList.remove('border-green-800', 'bg-slate-800/90');
+                btnElement.classList.add('border-red-500', 'bg-red-950', 'text-red-200');
+                
+                elFeedback.textContent = "ACCESS DENIED. Incorrect analytical response. Recalibrating lock...";
+                elFeedback.classList.add('bg-red-950', 'text-red-300', 'border', 'border-red-500');
+                
+                const container = document.getElementById('game-container');
+                container.style.transform = "translateX(6px)";
+                setTimeout(() => container.style.transform = "translateX(-6px)", 100);
+                setTimeout(() => container.style.transform = "translateX(6px)", 200);
+                setTimeout(() => container.style.transform = "translateX(0)", 300);
+                
+                setTimeout(() => {
+                    loadPuzzle();
+                    isTransitioning = false;
+                }, 2200);
+            }
+        }
+
+        function triggerVictory() {
+            playSound('victory');
+            hideScreen(elPuzzle);
+            showScreen(elVictory);
+            elGradeDisplay.classList.add('hidden');
+            
+            // Populate standard mastery summary
+            const masteryList = document.getElementById('mastery-list');
+            masteryList.innerHTML = '';
+            gameData[currentGrade].puzzles.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = p.standard;
+                masteryList.appendChild(li);
+            });
+            
+            isTransitioning = false;
+        }
+
+        function returnToMenu() {
+            playSound('click');
+            currentGrade = null;
+            currentPuzzleIndex = 0;
+            hideScreen(elVictory);
+            showScreen(elMenu);
+        }
+
+        function hideScreen(element) {
+            element.classList.add('hidden');
+            element.classList.remove('fade-in');
+        }
+
+        function showScreen(element) {
+            element.classList.remove('hidden');
+            setTimeout(() => {
+                element.classList.add('fade-in');
+            }, 10);
+        }
+    </script>
+</body>
+</html>
